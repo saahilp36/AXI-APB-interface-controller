@@ -320,10 +320,10 @@ module bridge_integration_tb;
         // =====================================================================
         $display("\n[Test 5] APB wait states (3 cycles)");
         tb_wait_states = 3;
-        axi_write(.addr(PERIPH_BASE + 4), .data(32'hWAIT_1234),
+        axi_write(.addr(PERIPH_BASE + 4), .data(32'hBA5E_1234),
                   .got_bresp(got_bresp));
         check("Wait-state write BRESP", got_bresp === 2'b00);
-        model_write(PERIPH_BASE + 4, 32'hWAIT_1234, 4'hF);
+        model_write(PERIPH_BASE + 4, 32'hBA5E_1234, 4'hF);
 
         axi_read(.addr(PERIPH_BASE + 4), .got_rdata(got_rdata), .got_rresp(got_rresp));
         exp_rdata = model_read(PERIPH_BASE + 4);
@@ -335,10 +335,10 @@ module bridge_integration_tb;
         // TEST 6: AW arrives 2 cycles before W
         // =====================================================================
         $display("\n[Test 6] AW 2 cycles before W");
-        axi_write(.addr(PERIPH_BASE + 8), .data(32'hAW_FIRST),
+        axi_write(.addr(PERIPH_BASE + 8), .data(32'hAA00_F1F5),
                   .aw_delay(0), .w_delay(2), .got_bresp(got_bresp));
         check("AW-first write BRESP", got_bresp === 2'b00);
-        model_write(PERIPH_BASE + 8, 32'hAW_FIRST, 4'hF);
+        model_write(PERIPH_BASE + 8, 32'hAA00_F1F5, 4'hF);
         axi_read(.addr(PERIPH_BASE + 8), .got_rdata(got_rdata), .got_rresp(got_rresp));
         check("AW-first readback", got_rdata === model_read(PERIPH_BASE + 8));
 
@@ -346,10 +346,10 @@ module bridge_integration_tb;
         // TEST 7: W arrives 2 cycles before AW
         // =====================================================================
         $display("\n[Test 7] W 2 cycles before AW");
-        axi_write(.addr(PERIPH_BASE + 12), .data(32'hW_FIRST__),
+        axi_write(.addr(PERIPH_BASE + 12), .data(32'hBB00_F1F5),
                   .aw_delay(2), .w_delay(0), .got_bresp(got_bresp));
         check("W-first write BRESP", got_bresp === 2'b00);
-        model_write(PERIPH_BASE + 12, 32'hW_FIRST__, 4'hF);
+        model_write(PERIPH_BASE + 12, 32'hBB00_F1F5, 4'hF);
         axi_read(.addr(PERIPH_BASE + 12), .got_rdata(got_rdata), .got_rresp(got_rresp));
         check("W-first readback", got_rdata === model_read(PERIPH_BASE + 12));
 
@@ -357,7 +357,7 @@ module bridge_integration_tb;
         // TEST 8: BREADY delayed 4 cycles
         // =====================================================================
         $display("\n[Test 8] BREADY delayed 4 cycles");
-        axi_write(.addr(PERIPH_BASE + 16), .data(32'hB_DELAY__),
+        axi_write(.addr(PERIPH_BASE + 16), .data(32'hBB_DE1A7),
                   .b_delay(4), .got_bresp(got_bresp));
         check("B-delay write BRESP", got_bresp === 2'b00);
 
@@ -366,9 +366,9 @@ module bridge_integration_tb;
         // =====================================================================
         $display("\n[Test 9] RREADY delayed 4 cycles");
         // Write a known value first
-        axi_write(.addr(PERIPH_BASE + 20), .data(32'hR_DELAY__),
+        axi_write(.addr(PERIPH_BASE + 20), .data(32'hCC_DE1A7),
                   .got_bresp(got_bresp));
-        model_write(PERIPH_BASE + 20, 32'hR_DELAY__, 4'hF);
+        model_write(PERIPH_BASE + 20, 32'hCC_DE1A7, 4'hF);
         axi_read(.addr(PERIPH_BASE + 20), .r_delay(4),
                  .got_rdata(got_rdata), .got_rresp(got_rresp));
         check("R-delay read data",  got_rdata === model_read(PERIPH_BASE + 20));
