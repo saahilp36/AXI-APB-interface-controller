@@ -13,6 +13,8 @@
 // Fix log:
 //   - psel_any now has a single driver (the manager's PSEL output).
 //   - Addresses that decode to no slave return SLVERR instead of OKAY.
+//   - M_PENABLE is gated with the decoded PSEL bits, so an unmapped access no longer
+//     shows PENABLE high with every PSEL low on the external bus.
 //   - Arbiter drives PSTRB low on reads (APB4) and only leaves ARB_IDLE when the
 //     manager has accepted the request (apb_req_ready).
 // =============================================================================
@@ -78,11 +80,16 @@ module axi_apb_bridge #(
     logic                    apb_rsp_error;
 
     logic                    psel_any;
+    logic                    penable_int;   // manager's PENABLE before gating with the decoded selects
     logic                    pready_mux;
     logic [DATA_WIDTH-1:0]   prdata_mux;
     logic                    pslverr_mux;
 
     // psel_any is driven only by apb_manager's PSEL output (u_apb_mgr below).
+    // PENABLE is only presented on the external bus when a slave is actually selected;
+    // for an unmapped address no PSEL is raised, so PENABLE is held low as well (the
+    // transfer still completes internally with SLVERR via the response mux below).
+    assign M_PENABLE = penable_int & (|M_PSEL);
 
     always_comb begin
         pready_mux  = 1'b1;
@@ -129,7 +136,7 @@ module axi_apb_bridge #(
         .req_valid(apb_req_valid), .req_write(apb_req_write), .req_addr(apb_req_addr),
         .req_wdata(apb_req_wdata), .req_strb(apb_req_strb), .req_ready(apb_req_ready),
         .rsp_valid(apb_rsp_valid), .rsp_rdata(apb_rsp_rdata), .rsp_error(apb_rsp_error),
-        .PSEL(psel_any), .PENABLE(M_PENABLE), .PWRITE(M_PWRITE), .PADDR(M_PADDR),
+        .PSEL(psel_any), .PENABLE(penable_int), .PWRITE(M_PWRITE), .PADDR(M_PADDR),
         .PWDATA(M_PWDATA), .PSTRB(M_PSTRB),
         .PREADY(pready_mux), .PRDATA(prdata_mux), .PSLVERR(pslverr_mux)
     );
